@@ -1,8 +1,12 @@
+:pelican.title:Chapter 5 - Error management
+:pelican.date:2021-04-23 10:00:00 +0100
+:pelican.slug:pycabook-chapter-05
+:pelican.series:Clean Architectures in Python
+:pelican.series_index:7
+
 :TIP:admonition,tip,lightbulb,"Tip"
 :GITHUB:admonition,note,github,"Source code"
 :gh-rentomatic:https://github.com/pycabook/rentomatic
-
-== Error management
 
 [quote, "Aliens, 1986"]
 ----
@@ -13,7 +17,7 @@ In every software project, a great part of the code is dedicated to error manage
 
 In a clean architecture, the main process is the creation of use cases and their execution. This is, therefore, the main source of errors, and the use cases layer is where we have to implement the error management. Errors can obviously come from the domain models layer, but since those models are created by the use cases the errors that are not managed by the models themselves automatically become errors of the use cases.
 
-=== Request and responses
+== Request and responses
 
 We can divide the error management code into two different areas. The first one represents and manages *requests*, that is, the input data that reaches our use case. The second one covers the way we return results from the use case through *responses*, the output data. These two concepts shouldn't be confused with HTTP requests and responses, even though there are similarities. We are now considering the way data can be passed to and received from use cases, and how to manage errors. This has nothing to do with the possible use of this architecture to expose an HTTP API.
 
@@ -27,11 +31,11 @@ To start working on possible errors and understand how to manage them, I will ex
 
 The filters could be, for example, represented by a dictionary that contains attributes of the model `Room` and the logic to apply to them. Once we accept such a rich structure, we open our use case to all sorts of errors: attributes that do not exist in the model, thresholds of the wrong type, filters that make the storage layer crash, and so on. All these considerations have to be taken into account by the use case.
 
-=== Basic structure
+== Basic structure
 
 We can implement structured requests before we expand the use case to accept filters. We just need a class `RoomListRequest` that can be initialised without parameters, so let us create the file `tests/requests/test_room_list.py` and put there a test for this object.
 
-. tests/requests/test_room_list.py
+. `tests/requests/test_room_list.py`
 [source,python]
 ----
 from rentomatic.requests.room_list import RoomListRequest
@@ -51,7 +55,7 @@ def test_build_room_list_request_from_empty_dict():
 
 While at the moment this request object is basically empty, it will come in handy as soon as we start having parameters for the list use case. The code of the class `RoomListRequest` is the following
 
-. rentomatic/requests/room_list.py
+. `rentomatic/requests/room_list.py`
 [source,python]
 ----
 class RoomListRequest:
@@ -70,7 +74,7 @@ class RoomListRequest:
 
 The response object is also very simple since for the moment we just need to return a successful result. Unlike the request, the response is not linked to any particular use case, so the test file can be named `tests/test_responses.py`
 
-. tests/test_responses.py
+. `tests/test_responses.py`
 [source,python]
 ----
 from rentomatic.responses import ResponseSuccess
@@ -82,7 +86,7 @@ def test_response_success_is_true():
 
 and the actual response object is in the file `rentomatic/responses.py`
 
-. rentomatic/responses.py
+. `rentomatic/responses.py`
 [source,python]
 ----
 class ResponseSuccess:
@@ -100,11 +104,11 @@ class ResponseSuccess:
 
 With these two objects, we just laid the foundations for richer management of input and outputs of the use case, especially in the case of error conditions.
 
-=== Requests and responses in a use case
+== Requests and responses in a use case
 
 Let's implement the request and response objects that we developed into the use case. To do this, we need to change the use case so that it accepts a request and return a response. The new version of `tests/use_cases/test_room_list.py` is the following
 
-. tests/use_cases/test_room_list.py
+. `tests/use_cases/test_room_list.py`
 [source,python]
 ----
 import pytest
@@ -168,7 +172,7 @@ def test_room_list_without_parameters(domain_rooms):
 
 And the changes in the use case are minimal. The new version of the file `rentomatic/use_cases/room_list.py` is the following
 
-. rentomatic/use_cases/room_list.py
+. `rentomatic/use_cases/room_list.py`
 [source,python]
 ----
 from rentomatic.responses import ResponseSuccess
@@ -186,14 +190,14 @@ def room_list_use_case(repo, request):
 
 Now we have a standard way to pack input and output values, and the above pattern is valid for every use case we can create. We are still missing some features, however, because so far requests and responses are not used to perform error management.
 
-=== Request validation
+== Request validation
 
-The parameter `filters` that we want to add to the use case allows the caller to add conditions to narrow the results of the model list operation, using a notation like `<attribute>\__<operator>`. For example, specifying `filters={'price__lt': 100}` should return all the results with a price lower than 100. 
+The parameter `filters` that we want to add to the use case allows the caller to add conditions to narrow the results of the model list operation, using a notation like `&lt;attribute&gt;__&lt;operator&gt;`. For example, specifying `filters={'price__lt': 100}` should return all the results with a price lower than 100. 
 
 Since the model `Room` has many attributes, the number of possible filters is very high. For simplicity's sake, I will consider the following cases:
 
 * The attribute `code` supports only `__eq`, which finds the room with the specific code if it exists
-* The attribute `price` supports `\__eq`, `__lt`, and `__gt`
+* The attribute `price` supports `__eq`, `__lt`, and `__gt`
 * All other attributes cannot be used in filters
 
 The core idea here is that requests are customised for use cases, so they can contain the logic that validates the arguments used to instantiate them. The request is valid or invalid before it reaches the use case, so it is not the responsibility of the latter to check that the input values have proper values or a proper format.
@@ -202,7 +206,7 @@ This also means that building a request might result in two different objects, a
 
 The first thing to do is to change the existing tests to use the factory.
 
-. tests/requests/test_room_list.py
+. `tests/requests/test_room_list.py`
 [source,python]
 ----
 from rentomatic.requests.room_list import build_room_list_request
@@ -224,7 +228,7 @@ def test_build_room_list_request_with_empty_filters():
 
 Next, I will test that passing the wrong type of object as `filters` or that using incorrect keys results in an invalid request
 
-. tests/requests/test_room_list.py
+. `tests/requests/test_room_list.py`
 [source,python]
 ----
 def test_build_room_list_request_with_invalid_filters_parameter():
@@ -245,7 +249,7 @@ def test_build_room_list_request_with_incorrect_filter_keys():
 
 Last, I will test the supported and unsupported keys
 
-. tests/requests/test_room_list.py
+. `tests/requests/test_room_list.py`
 [source,python]
 ----
 import pytest
@@ -279,7 +283,7 @@ Note that I used the decorator `pytest.mark.parametrize` to run the same test on
 
 Following the TDD approach, adding those tests one by one and writing the code that passes them, I come up with the following code
 
-. rentomatic/requests/room_list.py
+. `rentomatic/requests/room_list.py`
 [source,python]
 ----
 from collections.abc import Mapping
@@ -330,7 +334,7 @@ def build_room_list_request(filters=None):
 
 The introduction of the factory makes one use case test fails. The new version of that test is
 
-. tests/use_cases/test_room_list.py
+. `tests/use_cases/test_room_list.py`
 [source,python]
 ----
 ...
@@ -357,13 +361,13 @@ def test_room_list_without_parameters(domain_rooms):
 {gh-rentomatic}/tree/ed2-c05-s04
 ----
 
-=== Responses and failures
+== Responses and failures
 
 There is a wide range of errors that can happen while the use case code is executed. Validation errors, as we just discussed in the previous section, but also business logic errors or errors that come from the repository layer or other external systems that the use case interfaces with. Whatever the error, the use case shall always return an object with a known structure (the response), so we need a new object that provides good support for different types of failures.
 
 As happened for the requests there is no unique way to provide such an object, and the following code is just one of the possible solutions. First of all, after some necessary imports, I test that responses have a boolean value
 
-. tests/test_responses.py
+. `tests/test_responses.py`
 [source,python]
 ----
 from rentomatic.responses import (
@@ -395,7 +399,7 @@ def test_response_failure_is_false():
 
 Then I test the structure of responses, checking `type` and `value`. `ResponseFailure` objects should also have an attribute `message`
 
-. tests/test_responses.py
+. `tests/test_responses.py`
 [source,python]
 ----
 def test_response_success_has_type_and_value():
@@ -420,7 +424,7 @@ def test_response_failure_has_type_and_message():
 
 The remaining tests are all about `ResponseFailure`. First, a test to check that it can be initialised with an exception
 
-. tests/test_responses.py
+. `tests/test_responses.py`
 [source,python]
 ----
 def test_response_failure_initialisation_with_exception():
@@ -435,7 +439,7 @@ def test_response_failure_initialisation_with_exception():
 
 Since we want to be able to build a response directly from an invalid request, getting all the errors contained in the latter, we need to test that case
 
-. tests/test_responses.py
+. `tests/test_responses.py`
 [source,python]
 ----
 def test_response_failure_from_empty_invalid_request():
@@ -461,7 +465,7 @@ def test_response_failure_from_invalid_request_with_errors():
 
 Let's write the classes that make the tests pass
 
-. rentomatic/responses.py
+. `rentomatic/responses.py`
 [source,python]
 ----
 class ResponseTypes:
@@ -519,13 +523,13 @@ The error types contained in the class `ResponseTypes` are very similar to HTTP 
 {gh-rentomatic}/tree/ed2-c05-s05
 ----
 
-=== Error management in a use case
+== Error management in a use case
 
 Our implementation of requests and responses is finally complete, so we can now implement the last version of our use case. The function `room_list_use_case` is still missing a proper validation of the incoming request, and is not returning a suitable response in case something went wrong.
 
 The test `test_room_list_without_parameters` must match the new API, so I added `filters=None` to `assert_called_with`
 
-. tests/use_cases/test_room_list.py
+. `tests/use_cases/test_room_list.py`
 [source,python]
 ----
 def test_room_list_without_parameters(domain_rooms):
@@ -543,7 +547,7 @@ def test_room_list_without_parameters(domain_rooms):
 
 There are three new tests that we can add to check the behaviour of the use case when `filters` is not `None`. The first one checks that the value of the key `filters` in the dictionary used to create the request is actually used when calling the repository. These last two tests check the behaviour of the use case when the repository raises an exception or when the request is badly formatted.
 
-. tests/use_cases/test_room_list.py
+. `tests/use_cases/test_room_list.py`
 [source,python]
 ----
 import pytest
@@ -602,7 +606,7 @@ def test_room_list_handles_bad_request():
 
 Now change the use case to contain the new use case implementation that makes all the tests pass
 
-. rentomatic/use_cases/room_list.py
+. `rentomatic/use_cases/room_list.py`
 [source,python]
 ----
 from rentomatic.responses import (
@@ -630,7 +634,7 @@ As you can see, the first thing that the use case does is to check if the reques
 {gh-rentomatic}/tree/ed2-c05-s06
 ----
 
-=== Integrating external systems
+== Integrating external systems
 
 I want to point out a big problem represented by mocks. 
 
@@ -645,11 +649,11 @@ TypeError: room_list_use_case() missing 1 required positional argument: 'request
 
 The same error is returned by the CLI interface. After the introduction of requests and responses we didn't change the REST endpoint, which is one of the connections between the external world and the use case. Given that the API of the use case changed, we need to change the code of the endpoints that call the use case.
 
-==== The HTTP server
+=== The HTTP server
 
 As we can see from the exception above the use case is called with the wrong parameters in the REST endpoint. The new version of the test is
 
-. tests/rest/test_rooms.py
+. `tests/rest/test_rooms.py`
 [source,python]
 ----
 import json
@@ -730,7 +734,7 @@ assert args[1].filters == {'price__gt': '2', 'price__lt': '6'}
 
 Both the tests pass with a new version of the endpoint `room_list`
 
-. application/rest/room.py
+. `application/rest/room.py`
 [source,python]
 ----
 import json
@@ -815,7 +819,7 @@ Please note that I'm using a variable named `request_object` here to avoid clash
 {gh-rentomatic}/tree/ed2-c05-s07
 ----
 
-==== The repository
+=== The repository
 
 If we run the Flask development webserver now and try to access the endpoint `/rooms`, we will get a nice response that says
 
@@ -830,7 +834,7 @@ This error comes from the repository, which has not been migrated to the new API
 
 The new version of repository tests is
 
-. tests/repository/test_memrepo.py
+. `tests/repository/test_memrepo.py`
 [source,python]
 ----
 import pytest
@@ -948,7 +952,7 @@ Again, keep in mind that this is the API exposed by the storage, not the one exp
 
 The new version of the repository is
 
-. rentomatic/repository/memrepo.py
+. `rentomatic/repository/memrepo.py`
 [source,python]
 ----
 from rentomatic.domain.room import Room
@@ -993,11 +997,11 @@ At this point, you can start the Flask development webserver with `FLASK_CONFIG=
 {gh-rentomatic}/tree/ed2-c05-s08
 ----
 
-==== The CLI
+=== The CLI
 
 At this point fixing the CLI is extremely simple, as we just need to imitate what we did for the HTTP server, only without considering the filters as they were not par tof the command line tool.
 
-.cli.py
+. `cli.py`
 [source,python]
 ----
 #!/usr/bin/env python
@@ -1049,7 +1053,7 @@ print([room.to_dict() for room in response.value])
 {gh-rentomatic}/tree/ed2-c05-s09
 ----
 
-=== Conclusions
+== Conclusions
 
 We now have a very robust system to manage input validation and error conditions, and it is generic enough to be used with any possible use case. Obviously, we are free to add new types of errors to increase the granularity with which we manage failures, but the present version already covers everything that can happen inside a use case.
 

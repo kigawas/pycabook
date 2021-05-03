@@ -1,8 +1,12 @@
+:pelican.title:Chapter 4 - Add a web application
+:pelican.date:2021-04-23 10:00:00 +0100
+:pelican.slug:pycabook-chapter-04
+:pelican.series:Clean Architectures in Python
+:pelican.series_index:6
+
 :TIP:admonition,tip,lightbulb,"Tip"
 :GITHUB:admonition,note,github,"Source code"
 :gh-rentomatic:https://github.com/pycabook/rentomatic
-
-== Add a Web application
 
 [quote, "Groundhog Day, 1993"]
 ----
@@ -15,11 +19,11 @@ I will follow the REST recommendation, so the endpoint will return a JSON payloa
 
 To expose the HTTP endpoint we need a web server written in Python, and in this case, I chose Flask. Flask is a lightweight web server with a modular structure that provides just the parts that the user needs. In particular, we will not use any database/ORM, since we already implemented our own repository layer.
 
-=== Flask setup
+== Flask setup
 
 Let us start updating the requirements files. The file `requirements/prod.txt` shall mention Flask, as this package contains a script that runs a local webserver that we can use to expose the endpoint
 
-. requirements/prod.txt
+. `requirements/prod.txt`
 [source]
 ----
 Flask
@@ -27,7 +31,7 @@ Flask
 
 The file `requirements/test.txt` will contain the pytest extension to work with Flask (more on this later)
 
-. requirements/test.txt
+. `requirements/test.txt`
 [source]
 ----
 -r prod.txt
@@ -49,7 +53,7 @@ The setup of a Flask application is not complex, but there are a lot of concepts
 
 The Flask application can be configured using a plain Python object ([link](http://flask.pocoo.org/docs/latest/api/#flask.Config.from_object,documentation)), so I created the file `applicaton/config.py` that contains this code
 
-. applicaton/config.py
+. `applicaton/config.py`
 [source,python]
 ----
 import os
@@ -79,7 +83,7 @@ Read [link](http://flask.pocoo.org/docs/latest/config/,"this page") to know more
 
 Now we need a function that initialises the Flask application ([link](http://flask.pocoo.org/docs/latest/patterns/appfactories/,documentation)), configures it, and registers the blueprints ([link](http://flask.pocoo.org/docs/latest/blueprints/,documentation)). The file `application/app.py` contains the following code, which is an app factory
 
-. application/app.py
+. `application/app.py`
 [source,python]
 ----
 from flask import Flask
@@ -105,7 +109,7 @@ def create_app(config_name):
 {gh-rentomatic}/tree/ed2-c04-s02
 ----
 
-=== Test and create an HTTP endpoint
+== Test and create an HTTP endpoint
 
 Before we create the proper setup of the webserver, we want to create the endpoint that will be exposed. Endpoints are ultimately functions that are run when a user sends a request to a certain URL, so we can still work with TDD, as the final goal is to have code that produces certain results.
 
@@ -117,7 +121,7 @@ The extension `pytest-flask` allows us to run Flask, simulate HTTP requests, and
 
 Fixtures can be defined directly in your test file, but if we want a fixture to be globally available the best place to define it is the file `conftest.py` which is automatically loaded by pytest. As you can see there is a great deal of automation, and if you are not aware of it you might be surprised by the results, or frustrated by the errors.
 
-. tests/conftest.py
+. `tests/conftest.py`
 [source,python]
 ----
 import pytest
@@ -137,7 +141,7 @@ The function `app` runs the app factory to create a Flask app, using the configu
 
 At this point, we can write the test for our endpoint.
 
-. tests/rest/test_room.py
+. `tests/rest/test_room.py`
 [source,python]
 ----
 import json
@@ -170,7 +174,7 @@ def test_get(mock_use_case, client):
 
 Let's comment it section by section.
 
-. tests/rest/test_room.py
+. `tests/rest/test_room.py`
 [source,python]
 ----
 import json
@@ -191,7 +195,7 @@ rooms = [Room.from_dict(room_dict)]
 
 The first part contains some imports and sets up a room from a dictionary. This way we can later directly compare the content of the initial dictionary with the result of the API endpoint. Remember that the API returns JSON content, and we can easily convert JSON data into simple Python structures, so starting from a dictionary will come in handy.
 
-. tests/rest/test_room.py
+. `tests/rest/test_room.py`
 [source,python]
 ----
 @mock.patch("application.rest.room.room_list_use_case")
@@ -200,7 +204,7 @@ def test_get(mock_use_case, client):
 
 This is the only test that we have for the time being. During the whole test, we mock the use case, as we are not interested in running it, as it has been already tested elsewhere. We are however interested in checking the arguments passed to the use case, and a mock can provide this information. The test receives the mock from the decorator `patch` and the fixture `client`, which is one of the fixtures provided by `pytest-flask`. The fixture automatically loads `app`, which we defined in `conftest.py`, and is an object that simulates an HTTP client that can access the API endpoints and store the responses of the server.
 
-. tests/rest/test_room.py
+. `tests/rest/test_room.py`
 [source,python]
 ----
     mock_use_case.return_value = rooms
@@ -236,7 +240,7 @@ As you can see the structure is really simple. Apart from setting the blueprint,
 
 The above template becomes the following code
 
-. application/rest/room.py
+. `application/rest/room.py`
 [source,python]
 ----
 import json
@@ -300,7 +304,7 @@ def room_list():
 
 Please note that I initialised the memory storage with the same list used for the script `cli.py`. Again, the need of initialising the storage with data (even with an empty list) is due to the limitations of the storage `MemRepo`. The code that runs the use case is
 
-. application/rest/room.py
+. `application/rest/room.py`
 [source,python]
 ----
 def room_list():
@@ -310,7 +314,7 @@ def room_list():
 
 which is exactly the same code that we used in the command-line interface. The last part of the code creates a proper HTTP response, serializing the result of the use case using `RoomJsonEncoder`, and setting the HTTP status to 200 (success)
 
-. application/rest/room.py
+. `application/rest/room.py`
 [source,python]
 ----
     return Response(
@@ -324,11 +328,11 @@ This shows you the power of the clean architecture in a nutshell. Writing a CLI 
 
 Now that we defined the endpoint, we can finalise the configuration of the webserver, so that we can access the endpoint with a browser. This is not strictly part of the clean architecture, but as I did with the CLI interface I want you to see the final result, to get the whole picture and also to enjoy the effort you put in following the whole discussion up to this point.
 
-=== WSGI
+== WSGI
 
 Python web applications expose a common interface called [link](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface,"Web Server Gateway Interface") or WSGI. So to run the Flask development web server, we have to define a `wsgi.py` file in the main folder of the project, i.e. in the same directory of the file `cli.py`
 
-. wsgi.py
+. `wsgi.py`
 [source,python]
 ----
 import os
@@ -354,8 +358,10 @@ At this point, you can execute `FLASK_CONFIG="development" flask run` in the dir
 
 At this point, you can point your browser to http://127.0.0.1:5000/rooms and enjoy the JSON data returned by the first endpoint of your web application.
 
-=== Conclusions
+== Conclusions
 
 I hope you can now appreciate the power of the layered architecture that we created. We definitely wrote a lot of code to "just" print out a list of models, but the code we wrote is a skeleton that can easily be extended and modified. It is also fully tested, which is a part of the implementation that many software projects struggle with.
 
 The use case I presented is purposely very simple. It doesn't require any input and it cannot return error conditions, so the code we wrote completely ignored input validation and error management. These topics are however extremely important, so we need to discuss how a clean architecture can deal with them.
+
+::footnotes:

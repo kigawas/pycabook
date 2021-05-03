@@ -1,8 +1,12 @@
+:pelican.title:Chapter 6 - Integration with a real external system - Postgres
+:pelican.date:2021-04-23 10:00:00 +0100
+:pelican.slug:pycabook-chapter-06
+:pelican.series:Clean Architectures in Python
+:pelican.series_index:8
+
 :TIP:admonition,tip,lightbulb,"Tip"
 :GITHUB:admonition,note,github,"Source code"
 :gh-rentomatic:https://github.com/pycabook/rentomatic
-
-== Integration with a real external system - PostgreSQL
 
 [quote, "Die Hard, 1988"]
 ----
@@ -15,17 +19,17 @@ In this chapter I will show how to set up and run integration tests between our 
 
 This chapter will show you one of the biggest advantages of a clean architecture, namely the simplicity with which you can replace existing components with others, possibly based on a completely different technology.
 
-=== Decoupling with interfaces
+== Decoupling with interfaces
 
 The clean architecture we devised in the previous chapters defines a use case that receives a repository instance as an argument and uses its `list` method to retrieve the contained entries. This allows the use case to form a very loose coupling with the repository, being connected only through the API exposed by the object and not to the real implementation. In other words, the use cases are polymorphic with respect to the method `list`.
 
 This is very important and it is the core of the clean architecture design. Being connected through an API, the use case and the repository can be replaced by different implementations at any time, given that the new implementation provides the requested interface.
 
-It is worth noting, for example, that the initialisation of the object is not part of the API that the use cases are using since the repository is initialised in the main script and not in each use case. The method `\\__init__`, thus, doesn't need to be the same among the repository implementations, which gives us a great deal of flexibility, as different storage systems may need different initialisation values.
+It is worth noting, for example, that the initialisation of the object is not part of the API that the use cases are using since the repository is initialised in the main script and not in each use case. The method `__init__`, thus, doesn't need to be the same among the repository implementations, which gives us a great deal of flexibility, as different storage systems may need different initialisation values.
 
 The simple repository we implemented in one of the previous chapters is
 
-. rentomatic/repository/memrepo.py
+. `rentomatic/repository/memrepo.py`
 [source,python]
 ----
 from rentomatic.domain.room import Room
@@ -63,27 +67,27 @@ class MemRepo:
         return result
 ----
 
-whose interface is made of two parts: the initialisation and the method `list`. The method `\\__init__` accepts values because this specific object doesn't act as long-term storage, so we are forced to pass some data every time we instantiate the class.
+whose interface is made of two parts: the initialisation and the method `list`. The method `__init__` accepts values because this specific object doesn't act as long-term storage, so we are forced to pass some data every time we instantiate the class.
 
 A repository based on a proper database will not need to be filled with data when initialised, its main job being that of storing data between sessions, but will nevertheless need to be initialised at least with the database address and access credentials.
 
 Furthermore, we have to deal with a proper external system, so we have to devise a strategy to test it, as this might require a running database engine in the background. Remember that we are creating a specific implementation of a repository, so everything will be tailored to the actual database system that we will choose.
 
-=== A repository based on PostgreSQL
+== A repository based on PostgreSQL
 
 Let's start with a repository based on a popular SQL database, [link](https://www.postgresql.org,PostgreSQL). It can be accessed from Python in many ways, but the best one is probably through the [link](https://www.sqlalchemy.org,SQLAlchemy) interface. SQLAlchemy is an ORM, a package that maps objects (as in object-oriented) to a relational database. ORMs can normally be found in web frameworks like Django or in standalone packages like the one we are considering.
 
-:fn-query:[footnote](unless you consider things like `sessionmaker_mock(\)(\).query.assert_called_with(Room\)` something attractive. And this was by far the simplest mock I had to write.)
+:fn-query:[footnote](Unless you consider things like `sessionmaker_mock(\)(\).query.assert_called_with(Room\)` something attractive. And this was by far the simplest mock I had to write.)
 
 The important thing about ORMs is that they are very good examples of something you shouldn't try to mock. Properly mocking the SQLAlchemy structures that are used when querying the DB results in very complex code that is difficult to write and almost impossible to maintain, as every single change in the queries results in a series of mocks that have to be written again{fn-query}.
 
 We need therefore to set up an integration test. The idea is to create the DB, set up the connection with SQLAlchemy, test the condition we need to check, and destroy the database. Since the action of creating and destroying the DB can be expensive in terms of time, we might want to do it just at the beginning and at the end of the whole test suite, but even with this change, the tests will be slow. This is why we will also need to use labels to avoid running them every time we run the suite. Let's face this complex task one step at a time.
 
-=== Label integration tests
+== Label integration tests
 
 The first thing we need to do is to label integration tests, exclude them by default and create a way to run them. Since pytest supports labels, called _marks_, we can use this feature to add a global mark to a whole module. Create the file `tests/repository/postgres/test_postgresrepo.py` and put in it this code
 
-. tests/repository/postgres/test_postgresrepo.py
+. `tests/repository/postgres/test_postgresrepo.py`
 [source,python]
 ----
 import pytest
@@ -99,7 +103,7 @@ The module attribute `pytestmark` labels every test in the module with the tag `
 
 The marker should be registered in `pytest.ini`
 
-. pytest.ini
+. `pytest.ini`
 [source,ini]
 ----
 [pytest]
@@ -115,7 +119,7 @@ You can now run `pytest -svv -m integration` to ask pytest to run only the tests
 [source]
 ----
 $ pytest -svv -m integration
-========================== test session starts ===========================
+========================= test session starts ===========================
 platform linux -- Python XXXX, pytest-XXXX, py-XXXX, pluggy-XXXX --
 cabook/venv3/bin/python3
 cachedir: .cache
@@ -125,14 +129,14 @@ collected 36 items / 35 deselected / 1 selected
 
 tests/repository/postgres/test_postgresrepo.py::test_dummy PASSED
 
-==================== 1 passed, 35 deselected in 0.20s ====================
+=================== 1 passed, 35 deselected in 0.20s ====================
 ----
 
 While this is enough to run integration tests selectively, it is not enough to skip them by default. To do this, we can alter the pytest setup to label all those tests as skipped, but this will give us no means to run them. The standard way to implement this is to define a new command-line option and to process each marked test according to the value of this option.
 
 To do it open the file `tests/conftest.py` that we already created and add the following code
 
-. tests/conftest.py
+. `tests/conftest.py`
 [source,python]
 ----
 def pytest_addoption(parser):
@@ -159,7 +163,7 @@ This is the output with `--integration`
 [source]
 ----
 $ pytest -svv --integration
-========================== test session starts ===========================
+========================= test session starts ===========================
 platform linux -- Python XXXX, pytest-XXXX, py-XXXX, pluggy-XXXX --
 cabook/venv3/bin/python3
 cachedir: .cache
@@ -171,7 +175,7 @@ collected 36 items
 tests/repository/postgres/test_postgresrepo.py::test_dummy PASSED
 ...
 
-========================== 36 passed in 0.26s ============================
+========================= 36 passed in 0.26s ============================
 ----
 
 and this is the output without the custom option
@@ -179,7 +183,7 @@ and this is the output without the custom option
 [source]
 ----
 $ pytest -svv 
-========================== test session starts ===========================
+========================= test session starts ===========================
 platform linux -- Python XXXX, pytest-XXXX, py-XXXX, pluggy-XXXX --
 cabook/venv3/bin/python3
 cachedir: .cache
@@ -191,7 +195,7 @@ collected 36 items
 tests/repository/postgres/test_postgresrepo.py::test_dummy SKIPPED
 ...
 
-==================== 35 passed, 1 skipped in 0.27s =======================
+=================== 35 passed, 1 skipped in 0.27s =======================
 ----
 
 [{GITHUB}]
@@ -199,13 +203,13 @@ tests/repository/postgres/test_postgresrepo.py::test_dummy SKIPPED
 {gh-rentomatic}/tree/ed2-c06-s01
 ----
 
-=== Create SQLAlchemy classes
+== Create SQLAlchemy classes
 
 Creating and populating the test database with initial data will be part of the test suite, but we need to define somewhere the tables that will be contained in the database. This is where SQLAlchemy's ORM comes into play, as we will define those tables in terms of Python objects.
 
 Add the packages `SQLAlchemy` and `psycopg2` to the requirements file `prod.txt`
 
-. requirements/prod.txt
+. `requirements/prod.txt`
 [source]
 ----
 Flask
@@ -222,7 +226,7 @@ $ pip install -r requirements/dev.txt
 
 Create the file `rentomatic/repository/postgres_objects.py` with the following content
 
-. rentomatic/repository/postgres_objects.py
+. `rentomatic/repository/postgres_objects.py`
 [source,python]
 ----
 from sqlalchemy import Column, Integer, String, Float
@@ -278,7 +282,7 @@ Obviously, this means that you have to keep the storage and the domain levels in
 {gh-rentomatic}/tree/ed2-c06-s02
 ====
 
-=== Orchestration management
+== Orchestration management
 
 When we run the integration tests the Postgres database engine must be already running in the background, and it must be already configured, for example, with a pristine database ready to be used. Moreover, when all the tests have been executed the database should be removed and the database engine stopped.
 
@@ -288,7 +292,7 @@ As I explained in the posts I mentioned the plan is to create a management scrip
 
 The first thing we have to do if we plan to use Docker Compose is to add the requirement to `requirements/test.txt`
 
-. requirements/test.txt
+. `requirements/test.txt`
 [source]
 ----
 -r prod.txt
@@ -302,7 +306,7 @@ docker-compose
 
 and install it running `pip install -r requirements/dev.txt`. The management script is the following
 
-. manage.py
+. `manage.py`
 [source,python]
 ----
 #! /usr/bin/env python
@@ -595,7 +599,7 @@ After this it runs Pytest with a default set of options, adding all the options 
 
 To complete the setup we need to define a configuration file for Docker Compose
 
-. docker/testing.yml
+. `docker/testing.yml`
 [source,yaml]
 ----
 version: '3.8'
@@ -613,7 +617,7 @@ services:
 
 And finally a JSON configuration file
 
-. config/testing.json
+. `config/testing.json`
 [source,json]
 ----
 [
@@ -665,11 +669,11 @@ With all these files in place we are ready to start designing our tests.
 {gh-rentomatic}/tree/ed2-c06-s03
 ----
 
-=== Database fixtures
+== Database fixtures
 
 As we defined the configuration of the database in a JSON file we need a fixture that loads that same configuration, so that we can connect to the database during the tests. As we already have the function `read_json_configuration` in the management script we just need to wrap that. This is a fixture that is not specific to the Postgres repository, so I will introduce it in `tests/conftest.py`
 
-. tests/conftest.py
+. `tests/conftest.py`
 [source,python]
 ----
 from manage import read_json_configuration
@@ -685,7 +689,7 @@ As you can see I hardcoded the name of the configuration file for simplicity's s
 
 The rest of the fixtures contains code that is specific to Postgres, so it is better to keep the code separated in a more specific file `conftest.py`
 
-. tests/repository/postgres/conftest.py
+. `tests/repository/postgres/conftest.py`
 [source,python]
 ----
 import sqlalchemy
@@ -795,7 +799,7 @@ At this point you can run the test suite with integration tests. You should noti
 [source]
 ----
 $ ./manage.py test -- --integration
-========================== test session starts ===========================
+========================= test session starts ===========================
 platform linux -- Python XXXX, pytest-XXXX, py-XXXX, pluggy-XXXX --
 cabook/venv3/bin/python3
 cachedir: .cache
@@ -807,7 +811,7 @@ collected 36 items
 tests/repository/postgres/test_postgresrepo.py::test_dummy PASSED
 ...
 
-========================== 36 passed in 0.26s ============================
+========================= 36 passed in 0.26s ============================
 ----
 
 Note that to pass the option `--integration` we need to use `--` otherwise Click would consider the option as belonging to the script `./manage.py` instead of passing it as a pytest argument.
@@ -817,13 +821,13 @@ Note that to pass the option `--integration` we need to use `--` otherwise Click
 {gh-rentomatic}/tree/ed2-c06-s04
 ----
 
-=== Integration tests
+== Integration tests
 
 At this point we can create the real tests in the file `test_postgresrepo.py`, replacing the function `test_dummy`. All test receive the fixtures `app_configuration`, `pg_session`, and `pg_test_data`. The first fixture allows us to initialise the class `PostgresRepo` using the proper parameters. The second creates the database using the test data that is then contained in the third fixture.
 
 The tests for this repository are basically a copy of the ones created for `MemRepo`, which is not surprising. Usually, you want to test the very same conditions, whatever the storage system. Towards the end of the chapter we will see, however, that while these files are initially the same, they can evolve differently as we find bugs or corner cases that come from the specific implementation (in-memory storage, PostgreSQL, and so on).
 
-. rentomatic/repository/postgres/test_postgresrepo.py
+. `rentomatic/repository/postgres/test_postgresrepo.py`
 [source,python]
 ----
 import pytest
@@ -909,7 +913,7 @@ def test_repository_list_with_price_between_filter(
 
 Remember that I introduced these tests one at a time and that I'm not showing you the full TDD workflow only for brevity's sake. The code of the class `PostgresRepo` has been developed following a strict TDD approach, and I recommend you to do the same. The resulting code goes in `rentomatic/repository/postgresrepo.py`, the same directory where we created the file `postgres_objects.py`.
 
-. rentomatic/repository/postgresrepo.py
+. `rentomatic/repository/postgresrepo.py`
 [source,python]
 ----
 from sqlalchemy import create_engine
@@ -977,8 +981,10 @@ You might notice that `PostgresRepo` is very similar to `MemRepo`. This is the c
 
 Note that the method `list` returns domain models, which is allowed as the repository is implemented in one of the outer layers of the architecture.
 
-=== Conclusions
+== Conclusions
 
 As you can see, while setting up a proper integration testing environment is not trivial, the changes that our architecture required to work with a real repository are very limited. I think this is a good demonstration of the flexibility of a layered approach such as the one at the core of the clean architecture.
 
 Since this chapter mixed the setup of the integration testing with the introduction of a new repository, I will dedicate the next chapter purely to introduce a repository based on MongoDB, using the same structure that I created in this chapter. Supporting multiple databases (in this case even relational and non-relational) is not an uncommon pattern, as it allows you to use the approach that best suits each use case.
+
+::footnotes:

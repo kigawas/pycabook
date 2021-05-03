@@ -1,8 +1,12 @@
+:pelican.title:Changelog
+:pelican.date:2021-04-23 10:00:00 +0100
+:pelican.slug:pycabook-changelog
+:pelican.series:Clean Architectures in Python
+:pelican.series_index:98
+
 :TIP:admonition,tip,lightbulb,"Tip"
 :GITHUB:admonition,note,github,"Source code"
 :gh-rentomatic:https://github.com/pycabook/rentomatic
-
-= Changelog
 
 [quote, "Alien, 1979"]
 ----
@@ -11,7 +15,12 @@ What's the last thing you do remember? Hmm?
 
 I will track here changes between releases of the book, following [link](https://semver.org/,"Semantic Versioning"). A change in the *major* number means an incompatible change, that is a big rewrite of the book, also known as 2nd edition, 3rd edition, and so on. A change in the *minor* number means that something important was added to the content, like a new section or chapter. A change in the *patch* number signals minor fixes like typos in the text or the code, rewording of sentences, and so on.
 
-*Current version*: 2.0.1
+*Current version*: 2.0.2
+
+*Version 2.0.2 (???)*
+
+* Change1
+* Change2
 
 *Version 2.0.1 (2021-02-14)*
 

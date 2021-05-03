@@ -1,8 +1,12 @@
+:pelican.title:Chapter 8 - Run a production-ready system
+:pelican.date:2021-04-23 10:00:00 +0100
+:pelican.slug:pycabook-chapter-08
+:pelican.series:Clean Architectures in Python
+:pelican.series_index:10
+
 :TIP:admonition,tip,lightbulb,"Tip"
 :GITHUB:admonition,note,github,"Source code"
 :gh-rentomatic:https://github.com/pycabook/rentomatic
-
-== Run a production-ready system
 
 [quote, "Total Recall, 1990"]
 ----
@@ -13,7 +17,7 @@ Now that we developed a repository that connects with PostgreSQL we can discuss 
 
 Clearly, the definition "production-ready" refers to many different configuration that ultimately depend on the load and the business requirements of the system. As the goal is to show a complete example and not to cover real production requirements I will show a solution that uses real external systems like PostgreSQL and Nginx, without being too concerned about performances.
 
-=== Build a web stack
+== Build a web stack
 
 Now that we successfully containerised the tests we might try to devise a production-ready setup of the whole application, running both a web server and a database in Docker containers. Once again, I will follow the approach that I show in the series of posts I mentioned in one of the previous sections.
 
@@ -27,7 +31,7 @@ The steps towards a production-ready configuration are not complicated and the f
 
 Let's create the file `config/production.json`, which is very similar to the one we created for the tests
 
-. config/production.json
+. `config/production.json`
 [source,json]
 ----
 [
@@ -72,7 +76,7 @@ Let's define which containers we want to run in our production environment, and 
 
 The file `docker/production.yml` will contain the Docker Compose configuration, according to the convention we defined in `manage.py`
 
-. docker/production.yml
+. `docker/production.yml`
 [source,yaml]
 ----
 version: '3.8'
@@ -122,7 +126,7 @@ The last container is `nginx`, which we will use as it is directly from the Dock
 
 The Dockerfile for the web application is the following
 
-. docker/web/Dockerfile.production
+. `docker/web/Dockerfile.production`
 [source,docker]
 ----
 FROM python:3
@@ -139,7 +143,7 @@ RUN pip install -r /opt/requirements/prod.txt
 
 This is a very simple container that uses the standard `python:3` image, where I added the production requirements contained in `requirements/prod.txt`. To make the Docker container work we need to add `gunicorn` to this last file
 
-. requirements/prod.txt
+. `requirements/prod.txt`
 [source]
 ----
 Flask
@@ -151,7 +155,7 @@ gunicorn
 
 The configuration for Nginx is
 
-. docker/nginx/nginx.conf
+. `docker/nginx/nginx.conf`
 [source,nginx]
 ----
 worker_processes 1;
@@ -185,7 +189,7 @@ As for the rest of the project, this configuration is very basic and lacks some 
 
 As we will use Docker Compose, the script `manage.py` needs a simple change, which is a command that wraps `docker-compose` itself. We need the script to just initialise environment variables according to the content of the JSON configuration file and then run Docker Compose. As we already have the function `docker_compose_cmdline` the job is pretty simple
 
-. manage.py
+. `manage.py`
 [source,python]
 ----
 # Ensure an environment variable exists and has a value
@@ -272,7 +276,7 @@ Successfully tagged production_web:latest
 
 If this is successful you can run Docker Compose
 
-[source,sh]
+[source]
 ----
 $ ./manage.py compose up -d
 Creating production_web_1   ... done
@@ -282,7 +286,7 @@ Creating production_nginx_1 ... done
 
 and the output of `docker ps` should show three containers running
 
-[source,sh]
+[source]
 ----
 $ docker ps
 ... IMAGE          ...   PORTS                            NAMES
@@ -297,13 +301,13 @@ At this point we can open http://localhost:8080/rooms with our browser and see t
 
 The application is not actually using the database yet, as the Flask endpoint `room_list` in `application/rest/room.py` initialises the class `MemRepo` and loads it with some static values, which are the ones we see in our browser.
 
-=== Connect to a production-ready database
+== Connect to a production-ready database
 
 Thanks to the common interface between repositories moving from the memory-based `MemRepo` to `PostgresRepo` is very simple. Clearly, the external database will not contain any data initially, so the response of the use case will be empty.
 
 First of all, let's move the application to the Postgres repository. The new version of the endpoint is
 
-. application/rest/room.py
+. `application/rest/room.py`
 [source,python]
 ----
 import os
@@ -363,7 +367,7 @@ As you can see the main change is that `repo = MemRepo(rooms)` becomes `repo = P
 
 This is enough to make the application connect to the Postgres database that we are running in a container, but as I mentioned we also need to initialise the database. The bare minimum that we need is an empty database with the correct name. Remember that in this particular setup we use for the application a different database (`APPLICATION_DB`) from the one that the Postgres container creates automatically at startup (`POSTGRES_DB`). I added a specific command to the management script to perform this task
 
-. manage.py
+. `manage.py`
 [source,python]
 ----
 @cli.command()
@@ -476,8 +480,10 @@ and open or refresh http://localhost:8080/rooms with the browser to see the valu
 {gh-rentomatic}/tree/ed2-c08-s02
 ----
 
-=== Conclusions
+== Conclusions
 
 This chapter concludes the overview of the clean architecture example. Starting from scratch, we created domain models, serializers, use cases, an in-memory storage system, a command-line interface and an HTTP endpoint. We then improved the whole system with a very generic request/response management code, that provides robust support for errors. Last, we implemented two new storage systems, using both a relational and a NoSQL database.
 
 This is by no means a little achievement. Our architecture covers a very small use case, but is robust and fully tested. Whatever error we might find in the way we dealt with data, databases, requests, and so on, can be isolated and tamed much faster than in a system which doesn't have tests. Moreover, the decoupling philosophy not only allows us to provide support for multiple storage systems, but also to quickly implement new access protocols, or new serialisations for our objects.
+
+::footnotes:
