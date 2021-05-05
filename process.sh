@@ -10,7 +10,7 @@ do
     sed -i 1s/^/"# ${chapter}\n\n"/ ${output}
 done
 
-ls -1 manuscript/*.md > Book.txt
+ls -1 manuscript/*.md | xargs -n1 basename > manuscript/Book.txt
 
 mkdir manuscript/resources
 cp -R images/* manuscript/resources/
