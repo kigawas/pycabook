@@ -13,4 +13,5 @@ done
 
 ls -1 manuscript/*.md | xargs -n1 basename > manuscript/Book.txt
 
-cp -R images manuscript
+mkdir manuscript/resouces
+cp -R images manuscript/resouces
