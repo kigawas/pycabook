@@ -12,4 +12,5 @@ done
 
 ls -1 manuscript/*.md | xargs -n1 basename > manuscript/Book.txt
 
-cp -R images manuscript
+mkdir -p manuscript/images/pycabook
+cp -R images/* manuscript/images/pycabook
