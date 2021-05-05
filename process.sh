@@ -8,9 +8,9 @@ do
     output=manuscript/$(basename ${i/.mau/.md})
     mau -i ${i} -o ${output} -f markua --verbose
     sed -i 1s/^/"# ${chapter}\n\n"/ ${output}
+    sed -i s,"/images/pycabook/","images/", ${output}
 done
 
 ls -1 manuscript/*.md | xargs -n1 basename > manuscript/Book.txt
 
-mkdir -p manuscript/images/pycabook
-cp -R images/* manuscript/images/pycabook
+cp -R images manuscript

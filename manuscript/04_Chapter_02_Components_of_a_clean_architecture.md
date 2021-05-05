@@ -42,7 +42,7 @@ If the size of the items was defined by the shop, suddenly there would be anothe
 The clean architecture tries to capture both the *conceptual hierarchy* of components and the *type hierarchy* through a layered approach. In a clean architecture the components of the system are categorised and belong to a specific layer, with rules relative to the communication between components belonging to the same or to different layers. In particular, a clean architecture is a spherical structure, with inner (lower) layers completely encompassed by outer (higher) ones, and the former being oblivious of the existence of the latter.
 
 {alt: "width=60%"}
-![The basic layers of the clean architecture](/images/pycabook/circles01.svg)
+![The basic layers of the clean architecture](images/circles01.svg)
 
 Remember that in computer science, the words "lower" and "higher" almost always refer to the level of abstraction, and not to the importance of a component for the system. Each part of a system is important, otherwise it would not be there.
 
@@ -53,7 +53,7 @@ Let's have a look at the main layers depicted in the figure, keeping in mind tha
 This layer of the clean architecture contains a representation of the domain models, that is everything your system needs to interact with and is sufficiently complex to require a specific representation. For example, strings in Python are complex and very powerful objects. They provide many methods out of the box, so in general, it is useless to create a domain model for them. If your project was a tool to analyse medieval manuscripts, however, you might need to isolate sentences and their features, and at this point it might be reasonable to define a specific entity.
 
 {alt: "width=60%"}
-![Entities](/images/pycabook/circles02_entities.svg)
+![Entities](images/circles02_entities.svg)
 
 Since we work in Python, this layer will likely contain classes, with methods that simplify the interaction with them. It is very important, however, to understand that the models in this layer are different from the usual models of frameworks like Django. These models are not connected with a storage system, so they cannot be directly saved or queried using their own methods, they don't contain methods to dump themselves to JSON strings, they are not connected with any presentation layer. They are so-called lightweight models.
 
@@ -66,7 +66,7 @@ The entities layer provides a solid foundation of types that the outer layers ca
 As we said before the most important part of a clean system are use cases, as they implement the business rules, which are the core reason of existence of the system itself. Use cases are the processes that happen in your application, where you use your domain models to work on real data. Examples can be a user logging in, a search with specific filters being performed, or a bank transaction happening when the user wants to buy the content of the cart.
 
 {alt: "width=60%"}
-![Use cases](/images/pycabook/circles03_use_cases.svg)
+![Use cases](images/circles03_use_cases.svg)
 
 Use cases should be as small as possible. It is very important to isolate small actions into separate use cases, as this makes the whole system easier to test, understand and maintain. Use cases have full access to the entities layer, so they can instantiate and use them directly. They can also call each other, and it is common to create complex use cases composing simple ones.
 
@@ -75,7 +75,7 @@ Use cases should be as small as possible. It is very important to isolate small 
 This layer contains components that define interfaces for external systems, that is a common access model to services that do not implement the business rules. The classic example is that of a data storage, which internal details can be very different across implementations. These implementations share a common interface, otherwise they would not be implementations of the same concept, and the gateway's task is to expose it.
 
 {alt: "width=60%"}
-![Gateways](/images/pycabook/circles04_gateways.svg)
+![Gateways](images/circles04_gateways.svg)
 
 If you recall the simple example I started with, this is where the database interface would live. Gateways have access to entities, so the interface can freely receive and return objects which type has been defined in that layer, as they can freely access use cases. Gateways are used to mask the implementation of external systems, however, so it is rare for a gateway to call a use case, as this can be done by the external system itself. The gateways layer is intimately connected with the external systems one, which is why the two are separated by a dashed line.
 
@@ -84,7 +84,7 @@ If you recall the simple example I started with, this is where the database inte
 This part of the architecture is populated by components that implement the interfaces defined in the previous layer. The same interface might be implemented by one or more concrete components, as your system might want to support multiple implementations of that interface at the same time. For example, you might want to expose some use cases both through an HTTP API and a command line interface, or you want to provide support for different types of storage according to some configuration value.
 
 {alt: "width=60%"}
-![External systems](/images/pycabook/circles05_external_systems.svg)
+![External systems](images/circles05_external_systems.svg)
 
 Please remember that the "external" adjective doesn't always mean that the system is developed by others, or that it is a complex system like a web framework or a database. The word has a topological meaning, which shows that the system we are talking about is peripheral to the core of the architecture, that is it doesn't implement business logic. So we might want to use a messaging system developed in-house to send notifications to the clients of a certain service, but this is again just a presentation layer, unless our business is specifically centred around creating notification systems.
 
@@ -103,7 +103,7 @@ The deeper a layer is in this architecture, the more abstract the content is. Th
 Your elements should talk inwards, that is pass data to more abstract elements, using basic structures, that is entities and everything provided by the programming language you are using.
 
 {alt: "width=60%"}
-![The golden rule of the clean architecture](/images/pycabook/circles06_golden_rule.svg)
+![The golden rule of the clean architecture](images/circles06_golden_rule.svg)
 
 Your elements should talk outwards using interfaces, that is using only the expected API of a component, without referring to a specific implementation. When an outer layer is created, elements living there will plug themselves into those interfaces and provide a practical implementation.
 

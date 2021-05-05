@@ -16,12 +16,12 @@ Let's assume that this URL is `/rooms?status=available`. When the user's browser
 The purpose of the web framework is to understand the HTTP request and to retrieve the data that we need to provide a response. In this simple case there are two important parts of the request, namely the endpoint itself (`/rooms`), and a single query string parameter, `status=available`. Endpoints are like commands for our system, so when a user accesses one of them, they signal to the system that a specific service has been requested, which in this case is the list of all the rooms that are available for rent.
 
 {alt: "The web framework serving HTTP"}
-![The web framework serving HTTP](/images/pycabook/figure01.svg)
+![The web framework serving HTTP](images/figure01.svg)
 
 The domain in which the web framework operates is that of the HTTP protocol, so when the web framework has decoded the request it should pass the relevant information to another component that will process it. This other component is called *use case*, and it is the crucial and most important component of the whole clean system as it implements the *business logic*.
 
 {alt: "The business logic"}
-![The business logic](/images/pycabook/figure02.svg)
+![The business logic](images/figure02.svg)
 
 The business logic is an important concept in system design. You are creating a system because you have some knowledge that you think might be useful to the world, or at the very least marketable. This knowledge is, at the end of the day, a way to process data, a way to extract or present data that maybe others don't have. A search engine can find all the web pages that are related to the terms in a query, a social network shows you the posts of people you follow and sorts them according to a specific algorithm, a travel company finds the best options for your journey between two locations, and so on. All these are good examples of business logic.
 
@@ -49,7 +49,7 @@ When designing a system, it is paramount to think in terms of abstractions, or b
 {/blurb}
 For simplicity's sake, let's use a relational database like Postgres in this example, as it is likely to be familiar to the majority of readers, but keep in mind the more generic case.
 
-![The storage](/images/pycabook/figure03.svg)
+![The storage](images/figure03.svg)
 
 How does the use case connect with the storage system? Clearly, if we hard code into the use case the calls to a specific system (e.g. using SQL) the two components will be *strongly coupled*, which is something we try to avoid in system design. Coupled components are not independent, they are tightly connected, and changes occurring in one of the two force changes in the second one (and vice versa). This also means that testing components is more difficult, as one component cannot live without the other, and when the second component is a complex system like a database this can severely slow down development.
 
@@ -74,27 +74,27 @@ A real world example of this is that of power plugs: electric appliances are des
 In the example we are discussing, the use case needs to extract all rooms with a given status, so the database wrapper needs to provide a single entry point that we might call `list_rooms_with_status`.
 
 {alt: "The storage interface"}
-![The storage interface](/images/pycabook/figure04.svg)
+![The storage interface](images/figure04.svg)
 
 In the second phase of inversion of control the caller (the use case) is modified to avoid hard coding the call to the specific implementation, as this would again couple the two. The use case accepts an incoming object as a parameter of its constructor, and receives a concrete instance of the adapter at creation time. The specific technique used to implement this depends greatly on the programming language we use. Python doesn't have an explicit syntax for interfaces, so we will just assume the object we pass implements a the required methods.
 
 {alt: "Inversion of control on the storage interface"}
-![Inversion of control on the storage interface](/images/pycabook/figure05.svg)
+![Inversion of control on the storage interface](images/figure05.svg)
 
 Now the use case is connected with the adapter and knows the interface, and it can call the entry point `list_rooms_with_status` passing the status `available`. The adapter knows the details of the storage system, so it converts the method call and the parameter in a specific call (or set of calls) that extract the requested data, and then converts them in the format expected by the use case. For example, it might return a Python list of dictionaries that represent rooms.
 
 {alt: "The business logic extracts data from the storage"}
-![The business logic extracts data from the storage](/images/pycabook/figure06.svg)
+![The business logic extracts data from the storage](images/figure06.svg)
 
 At this point, the use case has to apply the rest of the business logic, if needed, and return the result to the web framework.
 
 {alt: "The business logic returns processed data to the web framework"}
-![The business logic returns processed data to the web framework](/images/pycabook/figure07.svg)
+![The business logic returns processed data to the web framework](images/figure07.svg)
 
 The web framework converts the data received from the use case into an HTTP response. In this case, as we are considering an endpoint that is supposed to be reached explicitly by the user of the website, the web framework will return an HTML page in the body of the response, but if this was an internal endpoint, for example called by some asynchronous JavaScript code in the front-end, the body of the response would probably just be a JSON structure.
 
 {alt: "The web framework returns the data in an HTTP response"}
-![The web framework returns the data in an HTTP response](/images/pycabook/figure08.svg)
+![The web framework returns the data in an HTTP response](images/figure08.svg)
 
 ## Advantages of a layered architecture
 
@@ -103,20 +103,20 @@ As you can see, the stages of this process are clearly separated, and there is a
 To better understand what loose coupling means for a programmer, let's consider the last picture. In the previous paragraphs I gave an example of a system that uses a web framework for the user interface and a relational database for the data source, but what would change if the front-end part was a command-line interface? And what would change if, instead of a relational database, there was another type of data source, for example a set of text files?
 
 {alt: "The web framework replaced by a CLI"}
-![The web framework replaced by a CLI](/images/pycabook/figure09.svg)
+![The web framework replaced by a CLI](images/figure09.svg)
 
 {alt: "A database replaced by a more trivial file-based storage"}
-![A database replaced by a more trivial file-based storage](/images/pycabook/figure10.svg)
+![A database replaced by a more trivial file-based storage](images/figure10.svg)
 
 As you can see, both changes would require the replacement of some components. After all, we need different code to manage a command line instead of a web page. But the external shape of the system doesn't change, neither does the way data flows. We created a system in which the user interface (web framework, command-line interface) and the data source (relational database, text files) are details of the implementation, and not core parts of it.
 
 The main immediate advantage of a layered architecture, however, is testability. When you clearly separate components you clearly establish the data each of them has to receive and produce, so you can ideally disconnect a single component and test it in isolation. Let's take the Web framework component that we added and consider it for a moment forgetting the rest of the architecture. We can ideally connect a tester to its inputs and outputs as you can see in the figure
 
 {alt: "Testing the web layer in isolation"}
-![Testing the web layer in isolation](/images/pycabook/figure11.svg)
+![Testing the web layer in isolation](images/figure11.svg)
 
 {alt: "Detailed setup of the web layer testing, width=80%"}
-![Detailed setup of the web layer testing](/images/pycabook/figure12.svg)
+![Detailed setup of the web layer testing](images/figure12.svg)
 
 We know that the Web framework receives an HTTP request (1) with a specific target and a specific query string, and that it has to call (2) a method on the use case passing specific parameters. When the use case returns data (3), the Web framework has to convert that into an HTTP response (4). Since this is a test we can have a fake use case, that is an object that just mimics what the use case does without really implementing the business logic. We will then test that the Web framework calls the method (2) with the correct parameters, and that the HTTP response (4) contains the correct data in the proper format, and all this will happen without involving any other part of the system.
 
