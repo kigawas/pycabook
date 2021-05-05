@@ -1,3 +1,5 @@
+# Chapter 01 A day in the life of a clean system
+
 {blockquote}
 Must be my lucky day.
 

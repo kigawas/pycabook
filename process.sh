@@ -4,10 +4,13 @@ rm -fR manuscript/*
 
 for i in src/*.mau;
 do
-    mau -i ${i} -o manuscript/$(basename ${i/.mau/.md}) -f markua --verbose
+    chapter=$(basename ${i/.mau/} | sed -r -e s,"^[0-9]+_",, -e s,"_"," ",g)
+    output=manuscript/$(basename ${i/.mau/.md})
+    mau -i ${i} -o ${output} -f markua --verbose
+    sed -i 1s/^/"# ${chapter}\n\n"/ ${output}
 done
 
-ls -1 manuscript/*.md > manuscript/Book.txt
+ls -1 manuscript/*.md > Book.txt
 
 mkdir manuscript/resources
 cp -R images/* manuscript/resources/

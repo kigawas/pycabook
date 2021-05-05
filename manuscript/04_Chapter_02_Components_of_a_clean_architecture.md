@@ -1,3 +1,5 @@
+# Chapter 02 Components of a clean architecture
+
 ## Components of a clean architecture
 
 {blockquote}
